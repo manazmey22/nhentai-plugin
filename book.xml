@@ -1,186 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-<scaffold>
-  <app-bar
-    title="${data.detail ? data.detail.titlePretty : data.title}"
-    elevation="0">
-    <actions>
-      <icon-button
-        icon="${data.isFavorite ? 'favorite' : 'favorite_border'}"
-        on-click="toggleFavorite()"/>
-    </actions>
-  </app-bar>
+<Scaffold>
+  <attr:appBar>
+    <AppBar elevation="0" title="nhentai">
+      <attr:actions>
+        <IconButton
+          icon="favorite"
+          onPressed="toggleFavorite()"/>
+      </attr:actions>
+    </AppBar>
+  </attr:appBar>
 
-  <if condition="${data.loading}">
-    <center>
-      <circular-progress-indicator/>
-    </center>
+  <if candidate="${loading}">
+    <Center>
+      <CircularProgressIndicator/>
+    </Center>
   </if>
 
-  <if condition="${!data.loading and data.error}">
-    <center>
-      <column main-axis-alignment="center">
-        <icon icon="error" size="48" color="red"/>
-        <sized-box height="12"/>
-        <text text="Failed to load gallery" style="subtitle1"/>
-        <sized-box height="4"/>
-        <text text="${data.error}" style="caption" color="grey"/>
-      </column>
-    </center>
-  </if>
+  <if candidate="${not(loading)}">
+    <SingleChildScrollView>
+      <Column>
 
-  <if condition="${!data.loading and data.detail}">
-    <single-child-scroll-view>
-      <column cross-axis-alignment="start">
-
-        <!-- Обложка + основная инфа -->
-        <container color="surface" padding="12">
-          <row cross-axis-alignment="start">
-            <clip-r-rect border-radius="8">
-              <network-image
-                url="${data.detail.cover}"
-                width="130"
-                height="185"
-                fit="cover"
-                headers='{"Referer":"https://nhentai.net/"}'/>
-            </clip-r-rect>
-            <sized-box width="12"/>
-            <flexible>
-              <column cross-axis-alignment="start">
-                <text
-                  text="${data.detail.titlePretty}"
-                  style="subtitle1"
-                  font-weight="bold"
-                  max-lines="3"
-                  overflow="ellipsis"/>
-                <sized-box height="4"/>
-                <if condition="${data.detail.titleJapanese.length > 0}">
-                  <text
-                    text="${data.detail.titleJapanese}"
-                    style="caption"
-                    color="grey"
-                    max-lines="2"
-                    overflow="ellipsis"/>
+        <!-- Обложка -->
+        <Padding>
+          <attr:padding><EdgeInsets all="12"/></attr:padding>
+          <Row crossAxisAlignment="start">
+            <ClipRRect borderRadius="8">
+              <Image.network width="130" height="185" fit="cover">
+                $cover
+              </Image.network>
+            </ClipRRect>
+            <SizedBox width="12"/>
+            <Expanded>
+              <Column crossAxisAlignment="start">
+                <if candidate="${detail}">
+                  <Text maxLines="4" overflow="ellipsis">${detail.titlePretty}</Text>
+                  <SizedBox height="6"/>
+                  <Text>${detail.pages} pages</Text>
+                  <SizedBox height="2"/>
+                  <Text>${detail.favorites} favorites</Text>
                 </if>
-                <sized-box height="8"/>
-                <row>
-                  <icon icon="menu_book" size="16" color="grey"/>
-                  <sized-box width="4"/>
-                  <text text="${data.detail.pages} pages" style="caption"/>
-                </row>
-                <sized-box height="4"/>
-                <row>
-                  <icon icon="favorite" size="16" color="pink"/>
-                  <sized-box width="4"/>
-                  <text text="${data.detail.favorites} favorites" style="caption"/>
-                </row>
-              </column>
-            </flexible>
-          </row>
-        </container>
+              </Column>
+            </Expanded>
+          </Row>
+        </Padding>
 
-        <divider/>
+        <Divider/>
 
-        <!-- Теги и метаданные -->
-        <padding padding="12,8">
-          <column cross-axis-alignment="start">
+        <!-- Теги -->
+        <if candidate="${detail}">
+          <Padding>
+            <attr:padding><EdgeInsets all="12"/></attr:padding>
+            <Column crossAxisAlignment="start">
 
-            <if condition="${data.detail.parodies.length > 0}">
-              <text text="Parodies" style="caption" color="grey"/>
-              <sized-box height="4"/>
-              <wrap spacing="4" run-spacing="4">
-                <for array="$data.detail.parodies">
-                  <chip label="${item}" background-color="indigo.100"/>
-                </for>
-              </wrap>
-              <sized-box height="8"/>
-            </if>
+              <if candidate="${not(equal(0, detail.artists.length))}">
+                <Text style="caption">Artists</Text>
+                <SizedBox height="4"/>
+                <Wrap spacing="4" runSpacing="4">
+                  <for array="$detail.artists">
+                    <Chip label="$item"/>
+                  </for>
+                </Wrap>
+                <SizedBox height="8"/>
+              </if>
 
-            <if condition="${data.detail.characters.length > 0}">
-              <text text="Characters" style="caption" color="grey"/>
-              <sized-box height="4"/>
-              <wrap spacing="4" run-spacing="4">
-                <for array="$data.detail.characters">
-                  <chip label="${item}" background-color="green.100"/>
-                </for>
-              </wrap>
-              <sized-box height="8"/>
-            </if>
+              <if candidate="${not(equal(0, detail.parodies.length))}">
+                <Text style="caption">Parodies</Text>
+                <SizedBox height="4"/>
+                <Wrap spacing="4" runSpacing="4">
+                  <for array="$detail.parodies">
+                    <Chip label="$item"/>
+                  </for>
+                </Wrap>
+                <SizedBox height="8"/>
+              </if>
 
-            <if condition="${data.detail.tags.length > 0}">
-              <text text="Tags" style="caption" color="grey"/>
-              <sized-box height="4"/>
-              <wrap spacing="4" run-spacing="4">
-                <for array="$data.detail.tags">
-                  <chip label="${item}"/>
-                </for>
-              </wrap>
-              <sized-box height="8"/>
-            </if>
+              <if candidate="${not(equal(0, detail.characters.length))}">
+                <Text style="caption">Characters</Text>
+                <SizedBox height="4"/>
+                <Wrap spacing="4" runSpacing="4">
+                  <for array="$detail.characters">
+                    <Chip label="$item"/>
+                  </for>
+                </Wrap>
+                <SizedBox height="8"/>
+              </if>
 
-            <if condition="${data.detail.artists.length > 0}">
-              <text text="Artists" style="caption" color="grey"/>
-              <sized-box height="4"/>
-              <wrap spacing="4" run-spacing="4">
-                <for array="$data.detail.artists">
-                  <chip label="${item}" background-color="orange.100"/>
-                </for>
-              </wrap>
-              <sized-box height="8"/>
-            </if>
+              <if candidate="${not(equal(0, detail.tags.length))}">
+                <Text style="caption">Tags</Text>
+                <SizedBox height="4"/>
+                <Wrap spacing="4" runSpacing="4">
+                  <for array="$detail.tags">
+                    <Chip label="$item"/>
+                  </for>
+                </Wrap>
+                <SizedBox height="8"/>
+              </if>
 
-            <if condition="${data.detail.groups.length > 0}">
-              <text text="Groups" style="caption" color="grey"/>
-              <sized-box height="4"/>
-              <wrap spacing="4" run-spacing="4">
-                <for array="$data.detail.groups">
-                  <chip label="${item}" background-color="teal.100"/>
-                </for>
-              </wrap>
-              <sized-box height="8"/>
-            </if>
+              <if candidate="${not(equal(0, detail.languages.length))}">
+                <Text style="caption">Languages</Text>
+                <SizedBox height="4"/>
+                <Wrap spacing="4" runSpacing="4">
+                  <for array="$detail.languages">
+                    <Chip label="$item"/>
+                  </for>
+                </Wrap>
+              </if>
 
-            <if condition="${data.detail.languages.length > 0}">
-              <text text="Languages" style="caption" color="grey"/>
-              <sized-box height="4"/>
-              <wrap spacing="4" run-spacing="4">
-                <for array="$data.detail.languages">
-                  <chip label="${item}" background-color="blue.100"/>
-                </for>
-              </wrap>
-              <sized-box height="8"/>
-            </if>
+            </Column>
+          </Padding>
+        </if>
 
-            <if condition="${data.detail.categories.length > 0}">
-              <text text="Categories" style="caption" color="grey"/>
-              <sized-box height="4"/>
-              <wrap spacing="4" run-spacing="4">
-                <for array="$data.detail.categories">
-                  <chip label="${item}" background-color="purple.100"/>
-                </for>
-              </wrap>
-            </if>
-
-          </column>
-        </padding>
-
-        <divider/>
+        <Divider/>
 
         <!-- Кнопка читать -->
-        <padding padding="12">
-          <for array="$data.detail.chapters">
-            <card elevation="1">
-              <list-tile
-                title="${item.title}"
-                subtitle="${item.pages} pages"
-                leading-icon="menu_book"
-                trailing-icon="play_arrow"
-                on-tap="readChapter(item)"/>
-            </card>
-          </for>
-        </padding>
+        <Padding>
+          <attr:padding><EdgeInsets all="16"/></attr:padding>
+          <ElevatedButton onPressed="readNow()">
+            <Text>Read Now</Text>
+          </ElevatedButton>
+        </Padding>
 
-      </column>
-    </single-child-scroll-view>
+      </Column>
+    </SingleChildScrollView>
   </if>
 
-</scaffold>
+</Scaffold>
