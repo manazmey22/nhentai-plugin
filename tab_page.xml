@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<column>
+  <if condition="${data.type == 'search'}">
+    <padding padding="8,8,8,0">
+      <row>
+        <flexible>
+          <text-field
+            hint="Search nhentai..."
+            value="${data.searchQuery}"
+            on-submit="doSearch(value)"/>
+        </flexible>
+        <icon-button
+          icon="search"
+          on-click="doSearch(data.searchQuery)"/>
+      </row>
+    </padding>
+  </if>
+
+  <flexible>
+    <list-view
+      on-end-reach="loadMore()"
+      padding="4">
+      <if condition="${data.loading and data.items.length == 0}">
+        <center>
+          <circular-progress-indicator/>
+        </center>
+      </if>
+
+      <grid-view
+        cross-axis-count="2"
+        cross-axis-spacing="4"
+        main-axis-spacing="4"
+        child-aspect-ratio="0.65"
+        padding="4">
+        <for array="$data.items">
+          <gesture-detector on-tap="openBook(item)">
+            <card elevation="2">
+              <column>
+                <flexible>
+                  <clip-r-rect border-radius="4,4,0,0">
+                    <network-image
+                      url="${item.cover}"
+                      fit="cover"
+                      headers='{"Referer":"https://nhentai.net/","User-Agent":"Mozilla/5.0"}'/>
+                  </clip-r-rect>
+                </flexible>
+                <padding padding="4">
+                  <column>
+                    <text
+                      text="${item.title}"
+                      max-lines="2"
+                      style="body2"
+                      overflow="ellipsis"/>
+                    <sized-box height="2"/>
+                    <text
+                      text="${item.pages} pages"
+                      style="caption"
+                      color="grey"/>
+                  </column>
+                </padding>
+              </column>
+            </card>
+          </gesture-detector>
+        </for>
+      </grid-view>
+
+      <if condition="${data.loading and data.items.length > 0}">
+        <center>
+          <padding padding="16">
+            <circular-progress-indicator/>
+          </padding>
+        </center>
+      </if>
+      <if condition="${data.noMore and data.items.length > 0}">
+        <center>
+          <padding padding="12">
+            <text text="No more results" color="grey" style="caption"/>
+          </padding>
+        </center>
+      </if>
+    </list-view>
+  </flexible>
+</column>
