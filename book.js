@@ -1,125 +1,100 @@
-// book.js
-// Страница деталей галереи
-
-const BASE_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
-  'Referer': 'https://nhentai.net/',
-  'Accept': 'application/json'
+const HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+  "Referer":    "https://nhentai.net/",
+  "Accept":     "application/json"
 };
 
 function extStr(t) {
-  switch (t) {
-    case 'j': return 'jpg';
-    case 'p': return 'png';
-    case 'g': return 'gif';
-    case 'w': return 'webp';
-    default: return 'jpg';
-  }
-}
-
-function coverUrl(g) {
-  const ext = extStr(g.images.cover.t);
-  return `https://t.nhentai.net/galleries/${g.media_id}/cover.${ext}`;
+  if (t === "j") return "jpg";
+  if (t === "p") return "png";
+  if (t === "g") return "gif";
+  if (t === "w") return "webp";
+  return "jpg";
 }
 
 function tagsByType(tags, type) {
-  return (tags || []).filter(t => t.type === type).map(t => t.name);
+  var out = [];
+  for (var i = 0; i < tags.length; i++) {
+    if (tags[i].type === type) out.push(tags[i].name);
+  }
+  return out;
 }
 
 class BookController extends Controller {
   async load() {
-    const basicInfo = this.data; // { id, title, cover }
+    var basic = this.data || {};
 
-    this.data = Object.assign({}, basicInfo, {
-      loading: true,
-      detail: null,
-      error: null
+    this.data = Object.assign({}, basic, {
+      loading:    true,
+      detail:     null,
+      isFavorite: FavoritesManager.exist(basic.id || ""),
+      error:      null
     });
 
     try {
-      const resp = await http.get(
-        `https://nhentai.net/api/gallery/${basicInfo.id}`,
-        { headers: BASE_HEADERS }
+      var resp = await fetch(
+        "https://nhentai.net/api/gallery/" + (basic.id || ""),
+        { headers: HEADERS }
       );
-      const g = JSON.parse(resp.data);
+      var g = await resp.json();
 
-      const detail = {
-        id: String(g.id),
-        mediaId: g.media_id,
-        titleEnglish: (g.title && g.title.english) || '',
-        titleJapanese: (g.title && g.title.japanese) || '',
-        titlePretty: (g.title && g.title.pretty) || basicInfo.title,
-        cover: coverUrl(g),
-        pages: g.num_pages || 0,
-        favorites: g.num_favorites || 0,
-        uploadDate: g.upload_date || 0,
-        tags: tagsByType(g.tags, 'tag'),
-        artists: tagsByType(g.tags, 'artist'),
-        characters: tagsByType(g.tags, 'character'),
-        parodies: tagsByType(g.tags, 'parody'),
-        groups: tagsByType(g.tags, 'group'),
-        languages: tagsByType(g.tags, 'language'),
-        categories: tagsByType(g.tags, 'category'),
-        // Главы для kinoko: одна «глава» = вся галерея
-        chapters: [
-          {
-            key: String(g.id),
-            title: (g.title && (g.title.english || g.title.pretty)) || `Gallery #${g.id}`,
-            pages: g.num_pages || 0
-          }
-        ]
+      var ext = extStr((g.images.cover || {}).t || "j");
+      var cover = "https://t.nhentai.net/galleries/" + g.media_id + "/cover." + ext;
+
+      var detail = {
+        id:          String(g.id),
+        mediaId:     g.media_id,
+        titleEn:     (g.title && g.title.english)  || "",
+        titleJp:     (g.title && g.title.japanese) || "",
+        titlePretty: (g.title && (g.title.english || g.title.pretty)) || basic.title || "",
+        cover:       cover,
+        pages:       g.num_pages || 0,
+        favorites:   g.num_favorites || 0,
+        tags:        tagsByType(g.tags || [], "tag"),
+        artists:     tagsByType(g.tags || [], "artist"),
+        characters:  tagsByType(g.tags || [], "character"),
+        parodies:    tagsByType(g.tags || [], "parody"),
+        languages:   tagsByType(g.tags || [], "language"),
+        chapterKey:  String(g.id),
+        chapterTitle:(g.title && (g.title.english || g.title.pretty)) || ("Gallery #" + g.id)
       };
 
       this.data = Object.assign({}, this.data, {
         loading: false,
-        detail: detail
+        detail:  detail
       });
     } catch (e) {
-      console.log('[nhentai] book load error: ' + e);
+      console.log("[nhentai] book error: " + e);
       this.data = Object.assign({}, this.data, {
         loading: false,
-        error: String(e)
+        error:   String(e)
       });
     }
   }
 
   unload() {}
 
-  // Начать чтение: передаёт key процессору
-  readChapter(chapter) {
-    this.read(chapter.key, {
-      title: chapter.title
-    });
+  readNow() {
+    var d = this.data.detail;
+    if (!d) return;
+    this.read(d.chapterKey, { title: d.chapterTitle });
   }
 
-  // Добавить в избранное
   toggleFavorite() {
-    const key = this.data.id;
-    if (FavoritesManager.exist(key)) {
-      FavoritesManager.remove(key);
+    var id = (this.data.detail && this.data.detail.id) || this.data.id;
+    if (!id) return;
+    if (FavoritesManager.exist(id)) {
+      FavoritesManager.remove(id);
     } else {
-      FavoritesManager.add(key, {
-        title: this.data.detail ? this.data.detail.titlePretty : this.data.title,
-        cover: this.data.detail ? this.data.detail.cover : this.data.cover,
-        key: key
+      FavoritesManager.add(id, {
+        title: this.data.detail ? this.data.detail.titlePretty : (this.data.title || ""),
+        cover: this.data.detail ? this.data.detail.cover : (this.data.cover || ""),
+        key:   id
       });
     }
-    // Обновляем UI
     this.data = Object.assign({}, this.data, {
-      isFavorite: FavoritesManager.exist(key)
+      isFavorite: FavoritesManager.exist(id)
     });
-  }
-
-  // Скачать главу
-  downloadChapter(chapter) {
-    if (DownloadManager.exist(chapter.key)) {
-      DownloadManager.removeKey(chapter.key);
-    } else {
-      DownloadManager.add(chapter.key, {
-        title: chapter.title,
-        mangaKey: this.data.id
-      });
-    }
   }
 }
 
