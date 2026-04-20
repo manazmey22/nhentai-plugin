@@ -1,0 +1,9 @@
+{
+  "name": "NHentai",
+  "author": "Roman",
+  "version": "4.1.0",
+  "type": "comic",
+  "url": "https://nhentai.net",
+  "icon": "red-flag.png",
+  "language": "en"
+}
