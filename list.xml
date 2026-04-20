@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Column>
+  <if candidate="${equal(type,'search')}">
+    <Padding>
+      <attr:padding>
+        <EdgeInsets all="8"/>
+      </attr:padding>
+      <Row>
+        <Expanded>
+          <TextField
+            decoration="Search nhentai..."
+            onSubmitted="doSearch(value)"/>
+        </Expanded>
+        <IconButton
+          icon="search"
+          onPressed="doSearch(query)"/>
+      </Row>
+    </Padding>
+  </if>
+
+  <Expanded>
+    <if candidate="${loading}">
+      <if candidate="${equal(0, items.length)}">
+        <Center>
+          <CircularProgressIndicator/>
+        </Center>
+      </if>
+    </if>
+
+    <if candidate="${not(loading)}">
+      <if candidate="${equal(0, items.length)}">
+        <if candidate="${not(equal(type,'search'))}">
+          <Center>
+            <Text>Loading...</Text>
+          </Center>
+        </if>
+        <if candidate="${equal(type,'search')}">
+          <Center>
+            <Text>Enter a search query</Text>
+          </Center>
+        </if>
+      </if>
+    </if>
+
+    <if candidate="${not(equal(0, items.length))}">
+      <GridView.count crossAxisCount="2" childAspectRatio="0.65"
+                      crossAxisSpacing="4" mainAxisSpacing="4"
+                      padding="4">
+        <for array="$items">
+          <InkWell onTap="openBook($index)">
+            <Card elevation="2">
+              <Column>
+                <Expanded>
+                  <ClipRRect borderRadius="4,4,0,0">
+                    <Image.network fit="cover">$item.cover</Image.network>
+                  </ClipRRect>
+                </Expanded>
+                <Padding>
+                  <attr:padding>
+                    <EdgeInsets all="6"/>
+                  </attr:padding>
+                  <Column>
+                    <Text maxLines="2" overflow="ellipsis">$item.title</Text>
+                    <SizedBox height="2"/>
+                    <Text style="caption">${item.pages} pages</Text>
+                  </Column>
+                </Padding>
+              </Column>
+            </Card>
+          </InkWell>
+        </for>
+      </GridView.count>
+    </if>
+
+  </Expanded>
+</Column>
