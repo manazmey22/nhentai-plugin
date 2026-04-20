@@ -1,0 +1,7 @@
+{
+  "name": "nhentai",
+  "icon": "icon.png",
+  "index": "index",
+  "processor": "processor",
+  "appbar_elevation": 0
+}
